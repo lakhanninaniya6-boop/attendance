@@ -1,4 +1,69 @@
-password });
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>अटेंडेंस ऐप</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+ body{font-family:Arial,sans-serif;background:#f2f5f9;margin:0;padding:16px}
+ .card{max-width:420px;margin:30px auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+ input,button{width:100%;padding:12px;margin:6px 0;font-size:16px;box-sizing:border-box;border-radius:8px;border:1px solid #ccc}
+ button{background:#1a73e8;color:#fff;border:none;cursor:pointer}
+ button.sec{background:#6b7280}
+ button.big{background:#16a34a;font-size:20px;padding:18px}
+ #msg{margin-top:10px;font-weight:bold}
+ table{width:100%;border-collapse:collapse;margin-top:10px}
+ td,th{border-bottom:1px solid #eee;padding:8px;text-align:left}
+ .hide{display:none}
+</style>
+</head>
+<body>
+<div class="card">
+ <h2>अटेंडेंस ऐप</h2>
+
+ <div id="authBox">
+  <input id="name" placeholder="नाम (सिर्फ रजिस्टर के लिए)">
+  <input id="email" type="email" placeholder="ईमेल">
+  <input id="password" type="password" placeholder="पासवर्ड (कम से कम 6 अक्षर)">
+  <button onclick="login()">लॉगिन</button>
+  <button class="sec" onclick="register()">रजिस्टर करें</button>
+ </div>
+
+ <div id="appBox" class="hide">
+  <p id="hello"></p>
+  <button class="big" onclick="markAttendance()">आज की अटेंडेंस लगाओ</button>
+  <button class="sec" onclick="loadHistory()">मेरी अटेंडेंस देखो</button>
+  <button class="sec" onclick="logout()">लॉगआउट</button>
+  <table id="hist"></table>
+ </div>
+
+ <div id="msg"></div>
+</div>
+
+<script>
+const SUPA = ';
+const SUPABASE_KEY = 'https://gjtskmdpultsyhnxzqfv.supabase.co/rest/v1/';
+const sb = supabase.createClient(sb_publishable_P--KMVNi2gllMLreyVdc5A_Zxzj-i-E);
+
+let currentMember = null;
+
+function say(t, ok){ const m=document.getElementById('msg'); m.textContent=t; m.style.color= ok ? 'green' : 'red'; }
+function val(id){ return document.getElementById(id).value.trim(); }
+
+async function register(){
+  const name=val('name'), email=val('email'), password=val('password');
+  if(!name||!email||!password){ say('नाम, ईमेल और पासवर्ड भरें'); return; }
+  const { error } = await sb.auth.signUp({ email, password });
+  if(error){ say(error.message); return; }
+  const { error: e2 } = await sb.from('members').insert({ name, email });
+  if(e2){ say('रजिस्टर हुआ, पर members में जोड़ नहीं पाया: '+e2.message); return; }
+  say('रजिस्टर हो गया! अब लॉगिन करें', true);
+}
+
+async function login(){
+  const email=val('email'), password=val('password');
+  const { error } = await sb.auth.signInWithPassword({ email, password });
   if(error){ say(error.message); return; }
   say('', true);
   await showApp();
@@ -45,4 +110,4 @@ async function logout(){
 sb.auth.getSession().then(({data})=>{ if(data.session){ showApp(); } });
 </script>
 </body>
-</html>
+</html
