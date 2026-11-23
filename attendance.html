@@ -1,0 +1,48 @@
+password });
+  if(error){ say(error.message); return; }
+  say('', true);
+  await showApp();
+}
+
+async function showApp(){
+  const { data:{ user } } = await sb.auth.getUser();
+  if(!user){ return; }
+  const { data, error } = await sb.from('members').select('*').eq('email', user.email).limit(1);
+  if(error || !data || data.length===0){ say('आपका नाम members टेबल में नहीं मिला'); await sb.auth.signOut(); return; }
+  currentMember = data[0];
+  document.getElementById('hello').textContent = 'नमस्ते, ' + currentMember.name;
+  document.getElementById('authBox').classList.add('hide');
+  document.getElementById('appBox').classList.remove('hide');
+}
+
+async function markAttendance(){
+  if(!currentMember){ return; }
+  const today = new Date().toISOString().slice(0,10);
+  const { data: ex } = await sb.from('attendance').select('*').eq('student_id', currentMember.id).eq('date', today);
+  if(ex && ex.length>0){ say('आज की अटेंडेंस पहले ही लग चुकी है', true); return; }
+  const { error } = await sb.from('attendance').insert({ student_id: currentMember.id, date: today });
+  if(error){ say(error.message); return; }
+  say('आज की अटेंडेंस लग गई ✅', true);
+  loadHistory();
+}
+
+async function loadHistory(){
+  if(!currentMember){ return; }
+  const { data, error } = await sb.from('attendance').select('date').eq('student_id', currentMember.id).order('date',{ascending:false}).limit(30);
+  if(error){ say(error.message); return; }
+  const t=document.getElementById('hist');
+  t.innerHTML='<tr><th>तारीख</th></tr>' + data.map(r=>'<tr><td>'+r.date+'</td></tr>').join('');
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  currentMember=null;
+  document.getElementById('appBox').classList.add('hide');
+  document.getElementById('authBox').classList.remove('hide');
+  say('');
+}
+
+sb.auth.getSession().then(({data})=>{ if(data.session){ showApp(); } });
+</script>
+</body>
+</html>
